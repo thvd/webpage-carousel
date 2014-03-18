@@ -1,8 +1,9 @@
 import 'dart:html';
 import 'dart:async';
 import 'dart:collection';
+import 'infinite-linked-list-entry.dart';
 
-class PageShow extends LinkedListEntry {
+class PageShow extends InfiniteLinkedListEntry {
   Duration duration;
   
   // location of page
@@ -12,40 +13,38 @@ class PageShow extends LinkedListEntry {
 LinkedList<PageShow> arr = new LinkedList<PageShow>()
       ..add(new PageShow()
           ..duration = const Duration(seconds: 15)
-          ..url = 'http://theverge.com')
+          ..url = 'http://10.20.1.198/counter.php')
       ..add(new PageShow()
           ..duration = const Duration(seconds: 10)
-          ..url = 'http://tweakers.net');
+          ..url = 'http://10.20.1.198/zabbix');
 
 IFrameElement iframe;
-IFrameElement cache;
 
 void main() {
   iframe = querySelector('#rotate-frame');
-  cache = querySelector('#rotate-frame-cache');
   
   _next(arr.first);
+  
+  window.onResize.listen(handleResize);
+  handleResize(null);
+}
+
+void handleResize(Event e) {
+  iframe.height = '${window.innerHeight}px';
+  iframe.width = '${window.innerWidth}px';
 }
 
 void _next(PageShow pageShow) {
-  
-  // Load url
-  
-  // When loaded, try to load next webpage in cache element
   
   if (pageShow.previous != null && iframe.src != '') {
     pageShow.previous.url = iframe.src;
   }
   
-  _setUrl(cache, pageShow.url);
+  _setUrl(iframe, pageShow.url);
   
-  cache.addEventListener('onload', (Event e) {
-    PageShow next = pageShow.next == null 
-          ? pageShow.list.first
-          : pageShow.next;
-      
-    new Timer(next.duration, () => _next(next));
-  });
+  PageShow next = pageShow.next;
+    
+  new Timer(next.duration, () => _next(next));
 }
 
 
