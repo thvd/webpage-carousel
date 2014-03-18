@@ -8,6 +8,10 @@ class PageShow extends InfiniteLinkedListEntry {
   
   // location of page
   String url;
+  
+  IFrameElement element;
+  
+  toString() => 'url: $url';
 }
 
 LinkedList<PageShow> arr = new LinkedList<PageShow>()
@@ -15,42 +19,53 @@ LinkedList<PageShow> arr = new LinkedList<PageShow>()
           ..duration = const Duration(seconds: 15)
           ..url = 'http://10.20.1.198/counter.php')
       ..add(new PageShow()
+          ..duration = const Duration(seconds: 30)
+          ..url = 'http://10.20.1.198/zabbix')
+      ..add(new PageShow()
           ..duration = const Duration(seconds: 10)
-          ..url = 'http://10.20.1.198/zabbix');
+          ..url = 'http://jenkins.onetrail.net//plugin/jenkinswalldisplay/walldisplay.html?viewName=All&jenkinsUrl=http%3A%2F%2Fjenkins.onetrail.net%2F');
 
-IFrameElement iframe;
+PageShow activeShow = arr.first;
 
 void main() {
-  iframe = querySelector('#rotate-frame');
+  arr.forEach((PageShow pShow){
+    pShow.element = (document.createElement('iframe') as IFrameElement)
+        ..seamless = true
+        ..style.display = 'none'
+        ..src = pShow.url;
+    
+    document.body.children.add(pShow.element);
+  });
   
-  _next(arr.first);
+  _next(activeShow);
   
   window.onResize.listen(handleResize);
   handleResize(null);
 }
 
 void handleResize(Event e) {
-  iframe.height = '${window.innerHeight}px';
-  iframe.width = '${window.innerWidth}px';
+  var innerHeight = '${window.innerHeight}px';
+  var innerWidth = '${window.innerWidth}px';
+  
+  arr.forEach((PageShow pageShow) {
+    pageShow.element.height = innerHeight;
+    pageShow.element.width = innerWidth;
+  });
 }
 
 void _next(PageShow pageShow) {
-  
-  if (pageShow.previous != null && iframe.src != '') {
-    pageShow.previous.url = iframe.src;
-  }
-  
-  _setUrl(iframe, pageShow.url);
+  activeShow.element.style.display = 'none';
+  activeShow = pageShow;
+  activeShow.element.style.display = 'block';
   
   PageShow next = pageShow.next;
-    
+  
   new Timer(next.duration, () => _next(next));
 }
 
-
 _setUrl(IFrameElement _iframe, String url) {
-  try {
-    _iframe.src = url;
+   try {
+      _iframe.src = url;
    } catch (e) {
      print('******error-');
      print(e);
