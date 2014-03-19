@@ -17,13 +17,13 @@ class PageShow extends InfiniteLinkedListEntry {
 LinkedList<PageShow> arr = new LinkedList<PageShow>()
       ..add(new PageShow()
           ..duration = const Duration(seconds: 15)
-          ..url = 'http://**/counter.php')
+          ..url = 'http://***/counter.php')
       ..add(new PageShow()
           ..duration = const Duration(seconds: 30)
-          ..url = 'http://**/zabbix')
+          ..url = 'http://***/zabbix')
       ..add(new PageShow()
           ..duration = const Duration(seconds: 10)
-          ..url = 'http://jenkins.**.net');
+          ..url = 'jenkins.company.com');
 
 PageShow activeShow;
 
