@@ -17,15 +17,15 @@ class PageShow extends InfiniteLinkedListEntry {
 LinkedList<PageShow> arr = new LinkedList<PageShow>()
       ..add(new PageShow()
           ..duration = const Duration(seconds: 15)
-          ..url = 'http://10.20.1.198/counter.php')
+          ..url = 'http://**/counter.php')
       ..add(new PageShow()
           ..duration = const Duration(seconds: 30)
-          ..url = 'http://10.20.1.198/zabbix')
+          ..url = 'http://**/zabbix')
       ..add(new PageShow()
           ..duration = const Duration(seconds: 10)
-          ..url = 'http://jenkins.onetrail.net//plugin/jenkinswalldisplay/walldisplay.html?viewName=All&jenkinsUrl=http%3A%2F%2Fjenkins.onetrail.net%2F');
+          ..url = 'http://jenkins.**.net');
 
-PageShow activeShow = arr.first;
+PageShow activeShow;
 
 void main() {
   arr.forEach((PageShow pShow){
@@ -37,7 +37,7 @@ void main() {
     document.body.children.add(pShow.element);
   });
   
-  _next(activeShow);
+  _next();
   
   window.onResize.listen(handleResize);
   handleResize(null);
@@ -53,14 +53,19 @@ void handleResize(Event e) {
   });
 }
 
-void _next(PageShow pageShow) {
-  activeShow.element.style.display = 'none';
-  activeShow = pageShow;
+void _next() {
+  if (activeShow == null) {
+    // first time, start
+    activeShow = arr.first;
+  } else {
+    // continue
+    activeShow.element.style.display = 'none';
+    activeShow = activeShow.next;
+  }
+  
   activeShow.element.style.display = 'block';
   
-  PageShow next = pageShow.next;
-  
-  new Timer(next.duration, () => _next(next));
+  new Timer(activeShow.duration, _next);
 }
 
 _setUrl(IFrameElement _iframe, String url) {
