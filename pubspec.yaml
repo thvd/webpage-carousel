@@ -1,6 +1,4 @@
 name: sideproject_website_rotator
 description: A sample web application
 dependencies:
-  angular: any
   browser: any
-  rss: any

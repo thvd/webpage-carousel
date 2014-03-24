@@ -2,6 +2,7 @@ import 'dart:html';
 import 'dart:async';
 import 'dart:collection';
 import 'infinite-linked-list-entry.dart';
+import 'dart:convert';
 
 class PageShow extends InfiniteLinkedListEntry {
   Duration duration;
@@ -14,34 +15,40 @@ class PageShow extends InfiniteLinkedListEntry {
   toString() => 'url: $url';
 }
 
-LinkedList<PageShow> arr = new LinkedList<PageShow>()
-      ..add(new PageShow()
-          ..duration = const Duration(seconds: 15)
-          ..url = 'http://***/counter.php')
-      ..add(new PageShow()
-          ..duration = const Duration(seconds: 30)
-          ..url = 'http://***/zabbix')
-      ..add(new PageShow()
-          ..duration = const Duration(seconds: 10)
-          ..url = 'jenkins.company.com');
-
+LinkedList<PageShow> arr = new LinkedList<PageShow>();
 PageShow activeShow;
 
 void main() {
-  arr.forEach((PageShow pShow){
-    pShow.element = (document.createElement('iframe') as IFrameElement)
-        ..seamless = true
-        ..style.display = 'none'
-        ..src = pShow.url;
+  
+  // get data from json file
+  HttpRequest.getString('data.json').then((String dataStr) {
+    Map<String, List<Map<String, dynamic>>> data = JSON.decode(dataStr);
     
-    document.body.children.add(pShow.element);
+    data['pageshows'].forEach((Map<String, dynamic> pageShow) {
+      int seconds = pageShow['duration'];
+      
+      arr.add(new PageShow()
+        ..duration = new Duration(seconds: seconds)
+        ..url = pageShow['url']);
+    });
+    
+    // init
+    arr.forEach((PageShow pShow) {
+      pShow.element = (document.createElement('iframe') as IFrameElement)
+          ..seamless = true
+          ..style.display = 'none'
+          ..src = pShow.url;
+      
+      document.body.children.add(pShow.element);
+    });
+    
+    _next();
+    
+    window.onResize.listen(handleResize);
+    handleResize(null);
   });
-  
-  _next();
-  
-  window.onResize.listen(handleResize);
-  handleResize(null);
 }
+
 
 void handleResize(Event e) {
   var innerHeight = '${window.innerHeight}px';
@@ -77,4 +84,3 @@ _setUrl(IFrameElement _iframe, String url) {
      print('-error******');
    }
 }
-
