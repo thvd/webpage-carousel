@@ -12,7 +12,7 @@ class PageShow extends InfiniteLinkedListEntry {
   
   IFrameElement element;
   
-  toString() => 'url: $url';
+  toString() => 'duration: $duration, url: $url';
 }
 
 LinkedList<PageShow> arr = new LinkedList<PageShow>();
@@ -21,66 +21,87 @@ PageShow activeShow;
 void main() {
   
   // get data from json file
-  HttpRequest.getString('data.json').then((String dataStr) {
-    Map<String, List<Map<String, dynamic>>> data = JSON.decode(dataStr);
-    
-    data['pageshows'].forEach((Map<String, dynamic> pageShow) {
-      int seconds = pageShow['duration'];
-      
-      arr.add(new PageShow()
-        ..duration = new Duration(seconds: seconds)
-        ..url = pageShow['url']);
-    });
-    
-    // init
-    arr.forEach((PageShow pShow) {
-      pShow.element = (document.createElement('iframe') as IFrameElement)
-          ..seamless = true
-          ..style.display = 'none'
-          ..src = pShow.url;
-      
-      document.body.children.add(pShow.element);
-    });
-    
-    _next();
-    
-    window.onResize.listen(handleResize);
-    handleResize(null);
-  });
+  String configuration = _getConfiguration('web/data.json');
+  if (configuration == null) {
+    HttpRequest.getString('data.json').then(init);
+  } else {
+    init(configuration);
+  }
 }
 
-
-void handleResize(Event e) {
-  var innerHeight = '${window.innerHeight}px';
-  var innerWidth = '${window.innerWidth}px';
+/**
+ * Init setup datastructures
+ */
+void init(String configurationStr) {
+  Map<String, List<Map<String, dynamic>>> configurationMap = JSON.decode(configurationStr);
   
-  arr.forEach((PageShow pageShow) {
-    pageShow.element.height = innerHeight;
-    pageShow.element.width = innerWidth;
+  configurationMap['pageshows'].forEach((Map<String, dynamic> pageShow) {
+    arr.add(new PageShow()
+      ..duration = new Duration(seconds: pageShow['duration'])
+      ..url = pageShow['url']);
   });
+ 
+  arr.forEach((PageShow pShow) {
+    pShow.element = (document.createElement('iframe') as IFrameElement)
+      ..seamless = true
+      ..style.display = 'none'
+      ..src = pShow.url;
+    
+    document.body.children.add(pShow.element);
+  });
+  
+  _next();
 }
 
+/**
+ * Show next PageShow object, and setup a Timer to display the following up PageShow object 
+ */
 void _next() {
   if (activeShow == null) {
     // first time, start
     activeShow = arr.first;
+    
+    activeShow.element.style.display = 'block';
+    new Timer(activeShow.duration, _next);
   } else {
     // continue
-    activeShow.element.style.display = 'none';
-    activeShow = activeShow.next;
+    activeShow.element.classes.addAll(['animated', 'bounceOutLeft']);
+    activeShow.element.on['animationend'].first.then((e) {
+      activeShow.element
+        ..classes.removeAll(['animated', 'bounceOutLeft'])
+        ..style.display = 'none';
+      
+      // set next pageshow
+      activeShow = activeShow.next;
+      
+      activeShow.element
+        ..style.display = 'block'
+        ..classes.addAll(['animated', 'bounceInRight'])
+        ..on['animationend'].first.then((e) {
+          activeShow.element.classes.removeAll(['animated', 'bounceInRight']);
+          new Timer(activeShow.duration, _next);
+        });
+    });
   }
-  
-  activeShow.element.style.display = 'block';
-  
-  new Timer(activeShow.duration, _next);
 }
 
+/**
+ * Load an URL in an iframe
+ */
 _setUrl(IFrameElement _iframe, String url) {
-   try {
-      _iframe.src = url;
-   } catch (e) {
-     print('******error-');
-     print(e);
-     print('-error******');
-   }
+  try {
+    _iframe.src = url;
+  } catch (e) {
+    print('******error-');
+    print(e);
+    print('-error******');
+  }
+}
+
+String _getConfiguration(String path) {
+  Element elem = querySelector('[type="json/data"][id="$path"]');
+  if (elem == null) {
+    return null;
+  }
+  return elem.text;
 }
