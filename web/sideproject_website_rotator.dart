@@ -43,7 +43,7 @@ void init(String configurationStr) {
  
   arr.forEach((PageShow pShow) {
     pShow.element = (document.createElement('iframe') as IFrameElement)
-      ..seamless = true
+      ..attributes['seamless'] = true.toString()
       ..style.display = 'none'
       ..src = pShow.url;
     
