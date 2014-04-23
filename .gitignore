@@ -5,3 +5,5 @@ pubspec.lock
 build/
 build.zip
 web/data.json
+.buildlog
+.idea/

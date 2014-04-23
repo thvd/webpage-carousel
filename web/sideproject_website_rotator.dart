@@ -1,19 +1,8 @@
 import 'dart:html';
 import 'dart:async';
 import 'dart:collection';
-import 'infinite-linked-list-entry.dart';
+import 'page-show.dart';
 import 'dart:convert';
-
-class PageShow extends InfiniteLinkedListEntry {
-  Duration duration;
-  
-  // location of page
-  String url;
-  
-  IFrameElement element;
-  
-  toString() => 'duration: $duration, url: $url';
-}
 
 LinkedList<PageShow> arr = new LinkedList<PageShow>();
 PageShow activeShow;
@@ -65,23 +54,26 @@ void _next() {
     new Timer(activeShow.duration, _next);
   } else {
     // continue
-    activeShow.element.classes.addAll(['animated', 'bounceOutLeft']);
-    activeShow.element.on['animationend'].first.then((e) {
-      activeShow.element
-        ..classes.removeAll(['animated', 'bounceOutLeft'])
-        ..style.display = 'none';
-      
-      // set next pageshow
-      activeShow = activeShow.next;
-      
-      activeShow.element
-        ..style.display = 'block'
-        ..classes.addAll(['animated', 'bounceInRight'])
-        ..on['animationend'].first.then((e) {
-          activeShow.element.classes.removeAll(['animated', 'bounceInRight']);
-          new Timer(activeShow.duration, _next);
-        });
-    });
+    activeShow.element
+      ..classes.addAll(['animated', 'bounceOutLeft'])
+      ..on['animationend'].first.then((e) {
+        // remove previous item
+        activeShow.element
+          ..classes.removeAll(['animated', 'bounceOutLeft'])
+          ..style.display = 'none';
+
+        // set next item
+        activeShow = activeShow.next;
+
+        // animate next item
+        activeShow.element
+          ..style.display = 'block'
+          ..classes.addAll(['animated', 'bounceInRight'])
+          ..on['animationend'].first.then((e) {
+            activeShow.element.classes.removeAll(['animated', 'bounceInRight']);
+            new Timer(activeShow.duration, _next);
+          });
+      });
   }
 }
 
