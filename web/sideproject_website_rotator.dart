@@ -54,39 +54,32 @@ void _next() {
     new Timer(activeShow.duration, _next);
   } else {
     // continue
+    PageShow oldPage = activeShow;
+    
     activeShow.element
       ..classes.addAll(['animated', 'bounceOutLeft'])
-      ..on['animationend'].first.then((e) {
+      ..on['animationend'].first.then((_) {
         // remove previous item
-        activeShow.element
+        
+        // use cached `oldPage` variable, because there you are in an event 
+        // listener, and before the event is fired, the `activeShow` 
+        // variable will get another value.  
+        oldPage.element
           ..classes.removeAll(['animated', 'bounceOutLeft'])
           ..style.display = 'none';
-
-        // set next item
-        activeShow = activeShow.next;
-
-        // animate next item
-        activeShow.element
-          ..style.display = 'block'
-          ..classes.addAll(['animated', 'bounceInRight'])
-          ..on['animationend'].first.then((e) {
-            activeShow.element.classes.removeAll(['animated', 'bounceInRight']);
-            new Timer(activeShow.duration, _next);
-          });
       });
-  }
-}
-
-/**
- * Load an URL in an iframe
- */
-_setUrl(IFrameElement _iframe, String url) {
-  try {
-    _iframe.src = url;
-  } catch (e) {
-    print('******error-');
-    print(e);
-    print('-error******');
+    
+    // set next item
+    activeShow = activeShow.next;
+    
+    // animate next item
+    activeShow.element
+      ..style.display = 'block'
+      ..classes.addAll(['animated', 'bounceInRight'])
+      ..on['animationend'].first.then((_) {
+        activeShow.element.classes.removeAll(['animated', 'bounceInRight']);
+        new Timer(activeShow.duration, _next);
+      });
   }
 }
 
