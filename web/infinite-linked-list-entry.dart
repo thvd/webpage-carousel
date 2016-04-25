@@ -1,6 +1,7 @@
 import 'dart:collection';
 
-class InfiniteLinkedListEntry<E extends LinkedListEntry<E>> extends LinkedListEntry<E> {
+class InfiniteLinkedListEntry<E extends LinkedListEntry<E>>
+    extends LinkedListEntry<E> {
   /**
    * Return the succeeding element in the list.
    */
@@ -8,9 +9,7 @@ class InfiniteLinkedListEntry<E extends LinkedListEntry<E>> extends LinkedListEn
     if (list.isEmpty) {
       return null;
     }
-    return super.next == null 
-        ? list.first
-        : super.next;
+    return super.next == null ? list.first : super.next;
   }
 
   /**
@@ -20,9 +19,6 @@ class InfiniteLinkedListEntry<E extends LinkedListEntry<E>> extends LinkedListEn
     if (list.isEmpty) {
       return null;
     }
-    return super.previous == null 
-            ? list.last
-            : super.previous;
+    return super.previous == null ? list.last : super.previous;
   }
-
 }

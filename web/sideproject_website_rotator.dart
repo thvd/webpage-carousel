@@ -8,7 +8,6 @@ LinkedList<PageShow> arr = new LinkedList<PageShow>();
 PageShow activeShow;
 
 void main() {
-  
   // get data from json file
   String configuration = _getConfiguration('web/data.json');
   if (configuration == null) {
@@ -22,23 +21,26 @@ void main() {
  * Init setup datastructures
  */
 void init(String configurationStr) {
-  Map<String, List<Map<String, dynamic>>> configurationMap = JSON.decode(configurationStr);
-  
-  configurationMap['pageshows'].forEach((Map<String, dynamic> pageShow) {
-    arr.add(new PageShow()
+  Map<String, List<Map<String, dynamic>>> configurationMap =
+      JSON.decode(configurationStr);
+
+  for (Map<String, dynamic> pageShow in configurationMap['pageshows']) {
+    var entry = new PageShow()
       ..duration = new Duration(seconds: pageShow['duration'])
-      ..url = pageShow['url']);
-  });
- 
-  arr.forEach((PageShow pShow) {
-    pShow.element = (document.createElement('iframe') as IFrameElement)
+      ..url = pageShow['url'];
+
+    entry.element = (document.createElement('iframe') as IFrameElement)
       ..attributes['seamless'] = true.toString()
       ..style.display = 'none'
-      ..src = pShow.url;
-    
-    document.body.children.add(pShow.element);
-  });
-  
+      ..src = entry.url;
+
+    arr.add(entry);
+  }
+
+  Iterable<IFrameElement> iframes = arr.map((PageShow pShow) => pShow.element);
+
+  document.body.children.addAll(iframes);
+
   _next();
 }
 
@@ -49,29 +51,29 @@ void _next() {
   if (activeShow == null) {
     // first time, start
     activeShow = arr.first;
-    
+
     activeShow.element.style.display = 'block';
     new Timer(activeShow.duration, _next);
   } else {
     // continue
     PageShow oldPage = activeShow;
-    
+
     activeShow.element
       ..classes.addAll(['animated', 'bounceOutLeft'])
       ..on['animationend'].first.then((_) {
         // remove previous item
-        
-        // use cached `oldPage` variable, because there you are in an event 
-        // listener, and before the event is fired, the `activeShow` 
-        // variable will get another value.  
+
+        // use cached `oldPage` variable, because there you are in an event
+        // listener, and before the event is fired, the `activeShow`
+        // variable will get another value.
         oldPage.element
           ..classes.removeAll(['animated', 'bounceOutLeft'])
           ..style.display = 'none';
       });
-    
+
     // set next item
     activeShow = activeShow.next;
-    
+
     // animate next item
     activeShow.element
       ..style.display = 'block'
